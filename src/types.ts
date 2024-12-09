@@ -1,28 +1,28 @@
 import { assert } from "console";
 
 // Basic types
-type u8 = number;
-type u16 = number;
-type u32 = number;
-type usize = number;
-type VecU8 = number[];
-type OptionU16 = number | undefined;
+export type u8 = number;
+export type u16 = number;
+export type u32 = number;
+export type usize = number;
+export type VecU8 = number[];
+export type OptionU16 = number | undefined;
 
 // SingleByteOpcode
-interface SingleByteOpcode {
+export interface SingleByteOpcode {
   address: u32;
   opcode: u8;
 }
 
 // BasicOpcode2
-interface BasicOpcode2 {
+export interface BasicOpcode2 {
   address: u32;
   opcode: u8;
   arg1: u16;
 }
 
 // BasicOpcode3
-interface BasicOpcode3 {
+export interface BasicOpcode3 {
   address: u32;
   opcode: u8;
   arg1: u16;
@@ -30,7 +30,7 @@ interface BasicOpcode3 {
 }
 
 // BasicOpcode4
-interface BasicOpcode4 {
+export interface BasicOpcode4 {
   address: u32;
   opcode: u8;
   arg1: u16;
@@ -38,7 +38,7 @@ interface BasicOpcode4 {
 }
 
 // BasicOpcode6
-interface BasicOpcode6 {
+export interface BasicOpcode6 {
   address: u32;
   opcode: u8;
   arg1: u16;
@@ -47,7 +47,7 @@ interface BasicOpcode6 {
 }
 
 // BasicOpcode8
-interface BasicOpcode8 {
+export interface BasicOpcode8 {
   address: u32;
   opcode: u8;
   arg1: u16;
@@ -57,7 +57,7 @@ interface BasicOpcode8 {
 }
 
 // BasicOpcode10
-interface BasicOpcode10 {
+export interface BasicOpcode10 {
   address: u32;
   opcode: u8;
   arg1: u16;
@@ -68,7 +68,7 @@ interface BasicOpcode10 {
 }
 
 // BasicOpcode12
-interface BasicOpcode12 {
+export interface BasicOpcode12 {
   address: u32;
   opcode: u8;
   arg1: u16;
@@ -80,7 +80,7 @@ interface BasicOpcode12 {
 }
 
 // BasicOpcode16
-interface BasicOpcode16 {
+export interface BasicOpcode16 {
   address: u32;
   opcode: u8;
   arg1: u16;
@@ -94,7 +94,7 @@ interface BasicOpcode16 {
 }
 
 // Op44Opcode
-interface Op44Opcode {
+export interface Op44Opcode {
   address: u32;
   opcode: u8;
   arg1: u16;
@@ -104,13 +104,13 @@ interface Op44Opcode {
 }
 
 // SwitchArm
-interface SwitchArm {
+export interface SwitchArm {
   index: u16;
   jump_address: u32;
 }
 
 // SwitchOpcode
-interface SwitchOpcode {
+export interface SwitchOpcode {
   address: u32;
   opcode: u8;
   comparison_value: u16;
@@ -120,7 +120,7 @@ interface SwitchOpcode {
 }
 
 // StringOpcode
-interface StringOpcode {
+export interface StringOpcode {
   address: u32;
   opcode: u8;
   header: [u8, u8, u8, u8];
@@ -132,7 +132,7 @@ interface StringOpcode {
 }
 
 // String47Opcode
-interface String47Opcode {
+export interface String47Opcode {
   address: u32;
   opcode: u8;
   arg1: u16;
@@ -145,7 +145,7 @@ interface String47Opcode {
 }
 
 // JumpOpcode2
-interface JumpOpcode2 {
+export interface JumpOpcode2 {
   address: u32;
   opcode: u8;
   arg1: u16;
@@ -153,7 +153,7 @@ interface JumpOpcode2 {
 }
 
 // JumpOpcode4
-interface JumpOpcode4 {
+export interface JumpOpcode4 {
   address: u32;
   opcode: u8;
   arg1: u16;
@@ -162,7 +162,7 @@ interface JumpOpcode4 {
 }
 
 // LongJumpOpcode
-interface LongJumpOpcode {
+export interface LongJumpOpcode {
   address: u32;
   opcode: u8;
   target_script: u16;
@@ -170,14 +170,14 @@ interface LongJumpOpcode {
 }
 
 // DirectJumpOpcode
-interface DirectJumpOpcode {
+export interface DirectJumpOpcode {
   address: u32;
   opcode: u8;
   jump_address: u32;
 }
 
 // Choice
-interface Choice {
+export interface Choice {
   address: u32;
   header: [u8, u8, u8, u8, u8, u8, u8, u8, u8, u8];
   sjis_bytes: VecU8;
@@ -187,7 +187,7 @@ interface Choice {
 }
 
 // ChoiceOpcode
-interface ChoiceOpcode {
+export interface ChoiceOpcode {
   address: u32;
   opcode: u8;
   pre_header: [u8, u8];
@@ -198,7 +198,7 @@ interface ChoiceOpcode {
 }
 
 // Custom77
-interface Custom77 {
+export interface Custom77 {
   address: u32;
   opcode: u8;
   condition: u8;
@@ -207,12 +207,12 @@ interface Custom77 {
 }
 
 // InsertOpcode
-interface InsertOpcode {
+export interface InsertOpcode {
   contents: Opcode[];
 }
 
 // Enum for Opcode types
-enum OpcodeType {
+export enum OpcodeType {
   OP_RESET = 0,
   OP_DIRECT_JUMP = 1,
   OP_JUMP_TO_SCRIPT = 2,
@@ -296,7 +296,7 @@ enum OpcodeType {
 }
 
 // Main Opcode interface
-interface Opcode {
+export interface Opcode {
   type: OpcodeType;
   data: SingleByteOpcode
   | DirectJumpOpcode
@@ -320,7 +320,7 @@ interface Opcode {
   | BasicOpcode16;
 }
 
-class OP_RESET implements Opcode {
+export class OP_RESET implements Opcode {
   type: OpcodeType.OP_RESET = OpcodeType.OP_RESET;
   data: SingleByteOpcode;
 
@@ -331,7 +331,7 @@ class OP_RESET implements Opcode {
 }
 
 
-class OP_DIRECT_JUMP implements Opcode {
+export class OP_DIRECT_JUMP implements Opcode {
   type: OpcodeType.OP_DIRECT_JUMP = OpcodeType.OP_DIRECT_JUMP;
   data: DirectJumpOpcode;
 
@@ -342,7 +342,7 @@ class OP_DIRECT_JUMP implements Opcode {
 }
 
 
-class OP_JUMP_TO_SCRIPT implements Opcode {
+export class OP_JUMP_TO_SCRIPT implements Opcode {
   type: OpcodeType.OP_JUMP_TO_SCRIPT = OpcodeType.OP_JUMP_TO_SCRIPT;
   data: LongJumpOpcode;
 
@@ -353,7 +353,7 @@ class OP_JUMP_TO_SCRIPT implements Opcode {
 }
 
 
-class OP_03 implements Opcode {
+export class OP_03 implements Opcode {
   type: OpcodeType.OP_03 = OpcodeType.OP_03;
   data: BasicOpcode4;
 
@@ -364,7 +364,7 @@ class OP_03 implements Opcode {
 }
 
 
-class OP_04 implements Opcode {
+export class OP_04 implements Opcode {
   type: OpcodeType.OP_04 = OpcodeType.OP_04;
   data: BasicOpcode4;
 
@@ -375,7 +375,7 @@ class OP_04 implements Opcode {
 }
 
 
-class OP_SCRIPT_RETURN implements Opcode {
+export class OP_SCRIPT_RETURN implements Opcode {
   type: OpcodeType.OP_SCRIPT_RETURN = OpcodeType.OP_SCRIPT_RETURN;
   data: SingleByteOpcode;
 
@@ -386,7 +386,7 @@ class OP_SCRIPT_RETURN implements Opcode {
 }
 
 
-class JE implements Opcode {
+export class JE implements Opcode {
   type: OpcodeType.JE = OpcodeType.JE;
   data: JumpOpcode4;
 
@@ -397,7 +397,7 @@ class JE implements Opcode {
 }
 
 
-class JNE implements Opcode {
+export class JNE implements Opcode {
   type: OpcodeType.JNE = OpcodeType.JNE;
   data: JumpOpcode4;
 
@@ -408,7 +408,7 @@ class JNE implements Opcode {
 }
 
 
-class JG implements Opcode {
+export class JG implements Opcode {
   type: OpcodeType.JG = OpcodeType.JG;
   data: JumpOpcode4;
 
@@ -419,7 +419,7 @@ class JG implements Opcode {
 }
 
 
-class JGE implements Opcode {
+export class JGE implements Opcode {
   type: OpcodeType.JGE = OpcodeType.JGE;
   data: JumpOpcode4;
 
@@ -430,7 +430,7 @@ class JGE implements Opcode {
 }
 
 
-class JL implements Opcode {
+export class JL implements Opcode {
   type: OpcodeType.JL = OpcodeType.JL;
   data: JumpOpcode4;
 
@@ -441,7 +441,7 @@ class JL implements Opcode {
 }
 
 
-class JLE implements Opcode {
+export class JLE implements Opcode {
   type: OpcodeType.JLE = OpcodeType.JLE;
   data: JumpOpcode4;
 
@@ -452,7 +452,7 @@ class JLE implements Opcode {
 }
 
 
-class JZ implements Opcode {
+export class JZ implements Opcode {
   type: OpcodeType.JZ = OpcodeType.JZ;
   data: JumpOpcode2;
 
@@ -463,7 +463,7 @@ class JZ implements Opcode {
 }
 
 
-class JNZ implements Opcode {
+export class JNZ implements Opcode {
   type: OpcodeType.JNZ = OpcodeType.JNZ;
   data: JumpOpcode2;
 
@@ -474,7 +474,7 @@ class JNZ implements Opcode {
 }
 
 
-class Switch implements Opcode {
+export class Switch implements Opcode {
   type: OpcodeType.Switch = OpcodeType.Switch;
   data: SwitchOpcode;
 
@@ -485,7 +485,7 @@ class Switch implements Opcode {
 }
 
 
-class OP_10 implements Opcode {
+export class OP_10 implements Opcode {
   type: OpcodeType.OP_10 = OpcodeType.OP_10;
   data: BasicOpcode4;
 
@@ -496,7 +496,7 @@ class OP_10 implements Opcode {
 }
 
 
-class OP_11 implements Opcode {
+export class OP_11 implements Opcode {
   type: OpcodeType.OP_11 = OpcodeType.OP_11;
   data: BasicOpcode4;
 
@@ -507,7 +507,7 @@ class OP_11 implements Opcode {
 }
 
 
-class OP_12 implements Opcode {
+export class OP_12 implements Opcode {
   type: OpcodeType.OP_12 = OpcodeType.OP_12;
   data: BasicOpcode4;
 
@@ -518,7 +518,7 @@ class OP_12 implements Opcode {
 }
 
 
-class OP_13 implements Opcode {
+export class OP_13 implements Opcode {
   type: OpcodeType.OP_13 = OpcodeType.OP_13;
   data: BasicOpcode4;
 
@@ -529,7 +529,7 @@ class OP_13 implements Opcode {
 }
 
 
-class OP_14 implements Opcode {
+export class OP_14 implements Opcode {
   type: OpcodeType.OP_14 = OpcodeType.OP_14;
   data: BasicOpcode4;
 
@@ -540,7 +540,7 @@ class OP_14 implements Opcode {
 }
 
 
-class OP_15 implements Opcode {
+export class OP_15 implements Opcode {
   type: OpcodeType.OP_15 = OpcodeType.OP_15;
   data: BasicOpcode4;
 
@@ -551,7 +551,7 @@ class OP_15 implements Opcode {
 }
 
 
-class OP_16 implements Opcode {
+export class OP_16 implements Opcode {
   type: OpcodeType.OP_16 = OpcodeType.OP_16;
   data: BasicOpcode4;
 
@@ -562,7 +562,7 @@ class OP_16 implements Opcode {
 }
 
 
-class OP_17 implements Opcode {
+export class OP_17 implements Opcode {
   type: OpcodeType.OP_17 = OpcodeType.OP_17;
   data: BasicOpcode4;
 
@@ -573,7 +573,7 @@ class OP_17 implements Opcode {
 }
 
 
-class OP_1A implements Opcode {
+export class OP_1A implements Opcode {
   type: OpcodeType.OP_1A = OpcodeType.OP_1A;
   data: BasicOpcode4;
 
@@ -584,7 +584,7 @@ class OP_1A implements Opcode {
 }
 
 
-class OP_1B implements Opcode {
+export class OP_1B implements Opcode {
   type: OpcodeType.OP_1B = OpcodeType.OP_1B;
   data: SingleByteOpcode;
 
@@ -595,7 +595,7 @@ class OP_1B implements Opcode {
 }
 
 
-class OP_1C implements Opcode {
+export class OP_1C implements Opcode {
   type: OpcodeType.OP_1C = OpcodeType.OP_1C;
   data: SingleByteOpcode;
 
@@ -606,7 +606,7 @@ class OP_1C implements Opcode {
 }
 
 
-class OP_1D implements Opcode {
+export class OP_1D implements Opcode {
   type: OpcodeType.OP_1D = OpcodeType.OP_1D;
   data: BasicOpcode6;
 
@@ -617,7 +617,7 @@ class OP_1D implements Opcode {
 }
 
 
-class OP_1E implements Opcode {
+export class OP_1E implements Opcode {
   type: OpcodeType.OP_1E = OpcodeType.OP_1E;
   data: BasicOpcode10;
 
@@ -628,7 +628,7 @@ class OP_1E implements Opcode {
 }
 
 
-class OP_1F implements Opcode {
+export class OP_1F implements Opcode {
   type: OpcodeType.OP_1F = OpcodeType.OP_1F;
   data: BasicOpcode12;
 
@@ -639,7 +639,7 @@ class OP_1F implements Opcode {
 }
 
 
-class OP_20 implements Opcode {
+export class OP_20 implements Opcode {
   type: OpcodeType.OP_20 = OpcodeType.OP_20;
   data: BasicOpcode6;
 
@@ -650,7 +650,7 @@ class OP_20 implements Opcode {
 }
 
 
-class OP_21 implements Opcode {
+export class OP_21 implements Opcode {
   type: OpcodeType.OP_21 = OpcodeType.OP_21;
   data: BasicOpcode6;
 
@@ -661,7 +661,7 @@ class OP_21 implements Opcode {
 }
 
 
-class OP_22 implements Opcode {
+export class OP_22 implements Opcode {
   type: OpcodeType.OP_22 = OpcodeType.OP_22;
   data: BasicOpcode4;
 
@@ -672,7 +672,7 @@ class OP_22 implements Opcode {
 }
 
 
-class OP_23 implements Opcode {
+export class OP_23 implements Opcode {
   type: OpcodeType.OP_23 = OpcodeType.OP_23;
   data: BasicOpcode8;
 
@@ -683,7 +683,7 @@ class OP_23 implements Opcode {
 }
 
 
-class OP_24 implements Opcode {
+export class OP_24 implements Opcode {
   type: OpcodeType.OP_24 = OpcodeType.OP_24;
   data: BasicOpcode6;
 
@@ -694,7 +694,7 @@ class OP_24 implements Opcode {
 }
 
 
-class OP_25 implements Opcode {
+export class OP_25 implements Opcode {
   type: OpcodeType.OP_25 = OpcodeType.OP_25;
   data: BasicOpcode4;
 
@@ -705,7 +705,7 @@ class OP_25 implements Opcode {
 }
 
 
-class OP_2D implements Opcode {
+export class OP_2D implements Opcode {
   type: OpcodeType.OP_2D = OpcodeType.OP_2D;
   data: BasicOpcode4;
 
@@ -716,7 +716,7 @@ class OP_2D implements Opcode {
 }
 
 
-class OP_2E implements Opcode {
+export class OP_2E implements Opcode {
   type: OpcodeType.OP_2E = OpcodeType.OP_2E;
   data: SingleByteOpcode;
 
@@ -727,7 +727,7 @@ class OP_2E implements Opcode {
 }
 
 
-class OP_2F implements Opcode {
+export class OP_2F implements Opcode {
   type: OpcodeType.OP_2F = OpcodeType.OP_2F;
   data: BasicOpcode2;
 
@@ -738,7 +738,7 @@ class OP_2F implements Opcode {
 }
 
 
-class OP_30 implements Opcode {
+export class OP_30 implements Opcode {
   type: OpcodeType.OP_30 = OpcodeType.OP_30;
   data: BasicOpcode10;
 
@@ -749,7 +749,7 @@ class OP_30 implements Opcode {
 }
 
 
-class OP_CHOICE implements Opcode {
+export class OP_CHOICE implements Opcode {
   type: OpcodeType.OP_CHOICE = OpcodeType.OP_CHOICE;
   data: ChoiceOpcode;
 
@@ -760,7 +760,7 @@ class OP_CHOICE implements Opcode {
 }
 
 
-class OP_MENU_CHOICE implements Opcode {
+export class OP_MENU_CHOICE implements Opcode {
   type: OpcodeType.OP_MENU_CHOICE = OpcodeType.OP_MENU_CHOICE;
   data: ChoiceOpcode;
 
@@ -771,7 +771,7 @@ class OP_MENU_CHOICE implements Opcode {
 }
 
 
-class OP_33 implements Opcode {
+export class OP_33 implements Opcode {
   type: OpcodeType.OP_33 = OpcodeType.OP_33;
   data: SingleByteOpcode;
 
@@ -782,7 +782,7 @@ class OP_33 implements Opcode {
 }
 
 
-class OP_34 implements Opcode {
+export class OP_34 implements Opcode {
   type: OpcodeType.OP_34 = OpcodeType.OP_34;
   data: BasicOpcode10;
 
@@ -793,7 +793,7 @@ class OP_34 implements Opcode {
 }
 
 
-class OP_36 implements Opcode {
+export class OP_36 implements Opcode {
   type: OpcodeType.OP_36 = OpcodeType.OP_36;
   data: BasicOpcode3;
 
@@ -804,7 +804,7 @@ class OP_36 implements Opcode {
 }
 
 
-class OP_39 implements Opcode {
+export class OP_39 implements Opcode {
   type: OpcodeType.OP_39 = OpcodeType.OP_39;
   data: BasicOpcode4;
 
@@ -815,7 +815,7 @@ class OP_39 implements Opcode {
 }
 
 
-class OP_3A implements Opcode {
+export class OP_3A implements Opcode {
   type: OpcodeType.OP_3A = OpcodeType.OP_3A;
   data: BasicOpcode4;
 
@@ -826,7 +826,7 @@ class OP_3A implements Opcode {
 }
 
 
-class OP_3B implements Opcode {
+export class OP_3B implements Opcode {
   type: OpcodeType.OP_3B = OpcodeType.OP_3B;
   data: BasicOpcode2;
 
@@ -837,7 +837,7 @@ class OP_3B implements Opcode {
 }
 
 
-class OP_3C implements Opcode {
+export class OP_3C implements Opcode {
   type: OpcodeType.OP_3C = OpcodeType.OP_3C;
   data: BasicOpcode2;
 
@@ -848,7 +848,7 @@ class OP_3C implements Opcode {
 }
 
 
-class OP_42 implements Opcode {
+export class OP_42 implements Opcode {
   type: OpcodeType.OP_42 = OpcodeType.OP_42;
   data: BasicOpcode8;
 
@@ -859,7 +859,7 @@ class OP_42 implements Opcode {
 }
 
 
-class OP_43 implements Opcode {
+export class OP_43 implements Opcode {
   type: OpcodeType.OP_43 = OpcodeType.OP_43;
   data: BasicOpcode4;
 
@@ -870,7 +870,7 @@ class OP_43 implements Opcode {
 }
 
 
-class OP_PLAY_VOICE implements Opcode {
+export class OP_PLAY_VOICE implements Opcode {
   type: OpcodeType.OP_PLAY_VOICE = OpcodeType.OP_PLAY_VOICE;
   data: Op44Opcode;
 
@@ -881,7 +881,7 @@ class OP_PLAY_VOICE implements Opcode {
 }
 
 
-class OP_TEXTBOX_DISPLAY implements Opcode {
+export class OP_TEXTBOX_DISPLAY implements Opcode {
   type: OpcodeType.OP_TEXTBOX_DISPLAY = OpcodeType.OP_TEXTBOX_DISPLAY;
   data: StringOpcode;
 
@@ -892,7 +892,7 @@ class OP_TEXTBOX_DISPLAY implements Opcode {
 }
 
 
-class OP_FREE_TEXT_OR_CHARNAME implements Opcode {
+export class OP_FREE_TEXT_OR_CHARNAME implements Opcode {
   type: OpcodeType.OP_FREE_TEXT_OR_CHARNAME = OpcodeType.OP_FREE_TEXT_OR_CHARNAME;
   data: String47Opcode;
 
@@ -903,7 +903,7 @@ class OP_FREE_TEXT_OR_CHARNAME implements Opcode {
 }
 
 
-class OP_48 implements Opcode {
+export class OP_48 implements Opcode {
   type: OpcodeType.OP_48 = OpcodeType.OP_48;
   data: BasicOpcode2;
 
@@ -914,7 +914,7 @@ class OP_48 implements Opcode {
 }
 
 
-class OP_CLEAR_SCREEN implements Opcode {
+export class OP_CLEAR_SCREEN implements Opcode {
   type: OpcodeType.OP_CLEAR_SCREEN = OpcodeType.OP_CLEAR_SCREEN;
   data: BasicOpcode4;
 
@@ -925,7 +925,7 @@ class OP_CLEAR_SCREEN implements Opcode {
 }
 
 
-class OP_WAIT implements Opcode {
+export class OP_WAIT implements Opcode {
   type: OpcodeType.OP_WAIT = OpcodeType.OP_WAIT;
   data: BasicOpcode2;
 
@@ -936,7 +936,7 @@ class OP_WAIT implements Opcode {
 }
 
 
-class OP_4B implements Opcode {
+export class OP_4B implements Opcode {
   type: OpcodeType.OP_4B = OpcodeType.OP_4B;
   data: BasicOpcode4;
 
@@ -947,7 +947,7 @@ class OP_4B implements Opcode {
 }
 
 
-class OP_4C implements Opcode {
+export class OP_4C implements Opcode {
   type: OpcodeType.OP_4C = OpcodeType.OP_4C;
   data: BasicOpcode6;
 
@@ -958,7 +958,7 @@ class OP_4C implements Opcode {
 }
 
 
-class OP_4F implements Opcode {
+export class OP_4F implements Opcode {
   type: OpcodeType.OP_4F = OpcodeType.OP_4F;
   data: BasicOpcode4;
 
@@ -969,7 +969,7 @@ class OP_4F implements Opcode {
 }
 
 
-class OP_51 implements Opcode {
+export class OP_51 implements Opcode {
   type: OpcodeType.OP_51 = OpcodeType.OP_51;
   data: BasicOpcode6;
 
@@ -980,7 +980,7 @@ class OP_51 implements Opcode {
 }
 
 
-class OP_59 implements Opcode {
+export class OP_59 implements Opcode {
   type: OpcodeType.OP_59 = OpcodeType.OP_59;
   data: SingleByteOpcode;
 
@@ -991,7 +991,7 @@ class OP_59 implements Opcode {
 }
 
 
-class OP_5A implements Opcode {
+export class OP_5A implements Opcode {
   type: OpcodeType.OP_5A = OpcodeType.OP_5A;
   data: SingleByteOpcode;
 
@@ -1002,7 +1002,7 @@ class OP_5A implements Opcode {
 }
 
 
-class OP_5F implements Opcode {
+export class OP_5F implements Opcode {
   type: OpcodeType.OP_5F = OpcodeType.OP_5F;
   data: SingleByteOpcode;
 
@@ -1013,7 +1013,7 @@ class OP_5F implements Opcode {
 }
 
 
-class OP_68 implements Opcode {
+export class OP_68 implements Opcode {
   type: OpcodeType.OP_68 = OpcodeType.OP_68;
   data: BasicOpcode10;
 
@@ -1024,7 +1024,7 @@ class OP_68 implements Opcode {
 }
 
 
-class OP_69 implements Opcode {
+export class OP_69 implements Opcode {
   type: OpcodeType.OP_69 = OpcodeType.OP_69;
   data: BasicOpcode2;
 
@@ -1035,7 +1035,7 @@ class OP_69 implements Opcode {
 }
 
 
-class OP_6A implements Opcode {
+export class OP_6A implements Opcode {
   type: OpcodeType.OP_6A = OpcodeType.OP_6A;
   data: BasicOpcode4;
 
@@ -1046,7 +1046,7 @@ class OP_6A implements Opcode {
 }
 
 
-class OP_6C implements Opcode {
+export class OP_6C implements Opcode {
   type: OpcodeType.OP_6C = OpcodeType.OP_6C;
   data: BasicOpcode16;
 
@@ -1057,7 +1057,7 @@ class OP_6C implements Opcode {
 }
 
 
-class OP_6E implements Opcode {
+export class OP_6E implements Opcode {
   type: OpcodeType.OP_6E = OpcodeType.OP_6E;
   data: BasicOpcode4;
 
@@ -1068,7 +1068,7 @@ class OP_6E implements Opcode {
 }
 
 
-class OP_6F implements Opcode {
+export class OP_6F implements Opcode {
   type: OpcodeType.OP_6F = OpcodeType.OP_6F;
   data: BasicOpcode6;
 
@@ -1079,7 +1079,7 @@ class OP_6F implements Opcode {
 }
 
 
-class OP_71 implements Opcode {
+export class OP_71 implements Opcode {
   type: OpcodeType.OP_71 = OpcodeType.OP_71;
   data: BasicOpcode6;
 
@@ -1090,7 +1090,7 @@ class OP_71 implements Opcode {
 }
 
 
-class OP_72 implements Opcode {
+export class OP_72 implements Opcode {
   type: OpcodeType.OP_72 = OpcodeType.OP_72;
   data: BasicOpcode4;
 
@@ -1101,7 +1101,7 @@ class OP_72 implements Opcode {
 }
 
 
-class OP_74 implements Opcode {
+export class OP_74 implements Opcode {
   type: OpcodeType.OP_74 = OpcodeType.OP_74;
   data: BasicOpcode6;
 
@@ -1112,7 +1112,7 @@ class OP_74 implements Opcode {
 }
 
 
-class OP_75 implements Opcode {
+export class OP_75 implements Opcode {
   type: OpcodeType.OP_75 = OpcodeType.OP_75;
   data: BasicOpcode4;
 
@@ -1123,7 +1123,7 @@ class OP_75 implements Opcode {
 }
 
 
-class OP_CUSTOM_TIP_77 implements Opcode {
+export class OP_CUSTOM_TIP_77 implements Opcode {
   type: OpcodeType.OP_CUSTOM_TIP_77 = OpcodeType.OP_CUSTOM_TIP_77;
   data: Custom77;
 
@@ -1134,7 +1134,7 @@ class OP_CUSTOM_TIP_77 implements Opcode {
 }
 
 
-class OP_7B implements Opcode {
+export class OP_7B implements Opcode {
   type: OpcodeType.OP_7B = OpcodeType.OP_7B;
   data: BasicOpcode4;
 
@@ -1145,7 +1145,7 @@ class OP_7B implements Opcode {
 }
 
 
-class OP_82 implements Opcode {
+export class OP_82 implements Opcode {
   type: OpcodeType.OP_82 = OpcodeType.OP_82;
   data: BasicOpcode2;
 
@@ -1156,7 +1156,7 @@ class OP_82 implements Opcode {
 }
 
 
-class OP_83 implements Opcode {
+export class OP_83 implements Opcode {
   type: OpcodeType.OP_83 = OpcodeType.OP_83;
   data: BasicOpcode4;
 
@@ -1167,7 +1167,7 @@ class OP_83 implements Opcode {
 }
 
 
-class OP_DEBUG_PRINT implements Opcode {
+export class OP_DEBUG_PRINT implements Opcode {
   type: OpcodeType.OP_DEBUG_PRINT = OpcodeType.OP_DEBUG_PRINT;
   data: StringOpcode;
 
@@ -1178,7 +1178,7 @@ class OP_DEBUG_PRINT implements Opcode {
 }
 
 
-class OP_SPECIAL_TEXT implements Opcode {
+export class OP_SPECIAL_TEXT implements Opcode {
   type: OpcodeType.OP_SPECIAL_TEXT = OpcodeType.OP_SPECIAL_TEXT;
   data: StringOpcode;
 
@@ -1189,7 +1189,7 @@ class OP_SPECIAL_TEXT implements Opcode {
 }
 
 
-class OP_Insert implements Opcode {
+export class OP_Insert implements Opcode {
   type: OpcodeType.OP_Insert = OpcodeType.OP_Insert;
   data: InsertOpcode;
 
