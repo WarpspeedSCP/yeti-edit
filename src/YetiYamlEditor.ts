@@ -1,7 +1,9 @@
+/* eslint-disable curly */
 import * as vscode from 'vscode';
-import { getNonce, yamlOpts } from './util';
+import * as util from './util';
 import * as yaml from 'yaml';
 import lineColumn from 'line-column';
+import semaphore from 'semaphore';
 
 export class YetiYamlEditorProvider implements vscode.CustomTextEditorProvider {
 	public static register(context: vscode.ExtensionContext): vscode.Disposable {
@@ -13,7 +15,7 @@ export class YetiYamlEditorProvider implements vscode.CustomTextEditorProvider {
 	private static readonly viewType = 'yeti-edit.yetiYamlEdit';
 
 	constructor(
-		private readonly context: vscode.ExtensionContext
+		private readonly context: vscode.ExtensionContext,
 	) { }
 
 	/**
@@ -26,7 +28,136 @@ export class YetiYamlEditorProvider implements vscode.CustomTextEditorProvider {
 		webviewPanel: vscode.WebviewPanel,
 		_token: vscode.CancellationToken
 	): Promise<void> {
-		var yml = yaml.parseDocument(document.getText(), yamlOpts);
+		var yml = yaml.parseDocument(document.getText(), util.yamlOpts);
+		var doc_stats = this.context.workspaceState.get('projectStats') as util.YetiContext;
+		if (!doc_stats) {
+			doc_stats = {
+				files: {},
+				aggregate: {
+					n_lines: 0,
+					n_tl: 0
+				}
+			};
+		}
+
+		var internal = false;
+		var internalGuard = semaphore(1);
+
+		const editTranslation = (document: vscode.TextDocument, yml: yaml.Document, doc_stats: util.YetiContext, idx: number, choice_idx: number, insert_idx: number, address: number, new_text: string) => {
+			return editThing(document, yml, doc_stats, "translation", idx, choice_idx, insert_idx, address, new_text);
+		};
+
+		const editNotes = (document: vscode.TextDocument, yml: yaml.Document, doc_stats: util.YetiContext, idx: number, choice_idx: number, insert_idx: number, address: number, new_text: string) => {
+			return editThing(document, yml, doc_stats, "notes", idx, choice_idx, insert_idx, address, new_text);
+		};
+
+		const doEditInner = (document: vscode.TextDocument, yml: any, doc_stats: util.YetiContext, note: yaml.YAMLMap, type: string, new_text: string,) => {
+			let fix = `${type}: "${new_text}"\n`;
+
+			if (type == 'translation') {
+				let changed = false;
+				if (util.isBlankOrNull(note.get(type) as string) && !util.isBlankOrNull(new_text)) {
+					doc_stats.files[document.uri.fsPath].n_tl += 1;
+					doc_stats.aggregate.n_tl += 1;
+					changed = true;
+				} else if (!util.isBlankOrNull(note.get(type) as string) && util.isBlankOrNull(new_text)) {
+					doc_stats.files[document.uri.fsPath].n_tl -= 1;
+					doc_stats.aggregate.n_tl -= 1;
+					changed = true;
+				}
+
+				if (changed) {
+					this.context.workspaceState.update('projectStats', doc_stats);
+					updateWebview('statupdate');
+				}
+			}
+
+			if (note.has(type)) {
+				let offset: yaml.Pair<any, any> = note.items.find((it: yaml.Pair<any, any>) => it.key.value === type)!;
+				// we store the original range to replace, because this will probably be invalidated when we run set.
+				let prev_offsets: [number, number] = [offset!.key!.range![0], offset!.value!.range![2]];
+				note.set(type, new_text);
+				return updateTextDocument(document, prev_offsets, fix);
+			} else {
+				vscode.window.showErrorMessage("Couldn't get correct position info for node, updating the whole document.");
+				note.set(type, new_text);
+				let str = yaml.stringify(yml);
+				return updateWithError(document, str);
+			}
+		};
+
+		/**
+		 * Edit a translation.
+		 */
+		const editThing = (
+			document: vscode.TextDocument,
+			yml: any,
+			doc_stats: util.YetiContext,
+			type: string,
+			idx: number,
+			choice_idx: number,
+			insert_idx: number,
+			address: number,
+			new_text: string
+		) => {
+			if (yml.get('opcodes').get(idx).get('address') === address ||
+				(yml.get('opcodes').get(idx).has('contents') && yml.get('opcodes').get(idx - 1).get('address') === address)) {
+				var op: yaml.YAMLMap = yml.get('opcodes').get(idx);
+
+				if (op.has('contents')) {
+					let contents: yaml.YAMLSeq = op.get("contents") as any;
+
+					let note = contents.get(insert_idx) as any;
+
+					return doEditInner(document, yml, doc_stats, note, type, new_text);
+				} else if ([0x31, 0x32].includes(op.get("opcode") as number)) {
+					let choices: yaml.YAMLSeq = op.get("choices") as any;
+
+					let choice = choices.get(choice_idx) as any;
+
+					return doEditInner(document, yml, doc_stats, choice, type, new_text);
+				} else {
+					doEditInner(document, yml, doc_stats, op, type, new_text);
+				}
+			}
+		};
+
+		const updateWithError = (document: vscode.TextDocument, text: string) => {
+			vscode.window.showErrorMessage("Couldn't get correct position info for node, updating the whole document.");
+
+			const edit = new vscode.WorkspaceEdit();
+
+			// Just replace the entire document every time for this example extension.
+			// A more complete extension should compute minimal edits instead.
+			edit.replace(
+				document.uri,
+				new vscode.Range(0, 0, document.lineCount, 0),
+				text,
+			);
+
+			return vscode.workspace.applyEdit(edit);
+		};
+
+		/**
+		 * Write out the json to a given document.
+		 */
+		const updateTextDocument = (document: vscode.TextDocument, prev_offsets: [number, number], replacement: string) => {
+			const edit = new vscode.WorkspaceEdit();
+
+			const lcol = lineColumn(document.getText(), { origin: 0 });
+
+			const startLineCol = lcol.fromIndex(prev_offsets[0])!;
+			const endLineCol = lcol.fromIndex(prev_offsets[1] - 1)!;
+
+			// Do a minimal edit.
+			edit.replace(
+				document.uri,
+				new vscode.Range(startLineCol.line, startLineCol.col, endLineCol.line, endLineCol.col),
+				replacement.substring(0, replacement.length - 1),
+			);
+
+			return vscode.workspace.applyEdit(edit);
+		};
 
 		// Setup initial content for the webview
 		webviewPanel.webview.options = {
@@ -34,10 +165,12 @@ export class YetiYamlEditorProvider implements vscode.CustomTextEditorProvider {
 		};
 		webviewPanel.webview.html = this.getHtmlForWebview(webviewPanel.webview);
 
-		function updateWebview() {
+		function updateWebview(type: string) {
 			webviewPanel.webview.postMessage({
-				type: 'update',
+				type,
 				data: yml,
+				stats: doc_stats.aggregate,
+				this_doc_stats: doc_stats.files[document.uri.fsPath],
 			});
 		}
 
@@ -50,9 +183,20 @@ export class YetiYamlEditorProvider implements vscode.CustomTextEditorProvider {
 		// editors (this happens for example when you split a custom editor)
 
 		const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(e => {
-			yml = yaml.parseDocument(document.getText(), yamlOpts);
+			if (e.contentChanges.length === 0) return;
+
+			yml = yaml.parseDocument(document.getText(), util.yamlOpts);
 			if (e.document.uri.toString() === document.uri.toString()) {
-				updateWebview();
+
+				internalGuard.take(function () {
+					if (!internal) {
+						updateWebview('update');
+					} else {
+						internal = false;
+					}
+					internalGuard.leave();
+				});
+
 			}
 		});
 
@@ -63,34 +207,45 @@ export class YetiYamlEditorProvider implements vscode.CustomTextEditorProvider {
 
 		// Receive message from the webview.
 		webviewPanel.webview.onDidReceiveMessage(async e => {
-			switch (e.type) {
-				case 'edit_translation':
-				case 'edit_translation_choice':
-				case 'edit_translation_insert':
-					await this.editTranslation(
-						document,
-						yml,
-						e.idx,
-						e.choice_idx ? e.choice_idx : 0,
-						e.insert_idx ? e.insert_idx : 0,
-						e.address,
-						e.new_text
-					);
-					break;
-				case 'edit_notes':
-					await this.editNotes(
-						document,
-						yml,
-						e.idx,
-						e.choice_idx ? e.choice_idx : 0,
-						e.insert_idx ? e.insert_idx : 0,
-						e.address,
-						e.new_text
-					);
-			}
+			internalGuard.take(async () => {
+				internal = true;
+				switch (e.type) {
+					case 'refresh':
+						internal = false;
+						internalGuard.leave();
+						updateWebview('update');
+						return;
+					case 'edit_translation':
+					case 'edit_translation_choice':
+					case 'edit_translation_insert':
+						await editTranslation(
+							document,
+							yml,
+							doc_stats,
+							e.idx,
+							e.choice_idx ? e.choice_idx : 0,
+							e.insert_idx ? e.insert_idx : 0,
+							e.address,
+							e.new_text,
+						);
+						break;
+					case 'edit_notes':
+						await editNotes(
+							document,
+							yml,
+							doc_stats,
+							e.idx,
+							e.choice_idx ? e.choice_idx : 0,
+							e.insert_idx ? e.insert_idx : 0,
+							e.address,
+							e.new_text,
+						);
+				}
+				internalGuard.leave();
+			});
 		});
 
-		updateWebview();
+		updateWebview('update');
 	}
 
 	/**
@@ -105,7 +260,7 @@ export class YetiYamlEditorProvider implements vscode.CustomTextEditorProvider {
 			this.context.extensionUri, 'media', 'vscode.css'));
 
 		// Use a nonce to whitelist which scripts can be run
-		const nonce = getNonce();
+		const nonce = util.getNonce();
 
 		return /* html */`
 			<!DOCTYPE html>
@@ -122,6 +277,18 @@ export class YetiYamlEditorProvider implements vscode.CustomTextEditorProvider {
 				<title>Cat Scratch</title>
 			</head>
 			<body>
+
+				<div class="navbar">
+					<div class="parent">
+						<div class="div1"><span>Lines (including choices): </span><span id="n_lines"></span></div>
+						<div class="div3"><span  >Translated: </span><span  id="n_tl"></span></div>
+						<div class="div5"><span  >Percentage done: </span><span  id="r_tl"></span></div>
+						<div class="div2"><span  >Total lines (including choices): </span><span  id="n_total_lines"></span></div>
+						<div class="div4"><span  >Total translated: </span><span  id="n_total_tl"></span></div>
+						<div class="div6"><span  >Total percentage done: </span><span  id="r_total_tl"></span></div>
+					</div>
+				</div>
+
 				<div class="notes">
 
 				</div>
@@ -129,102 +296,5 @@ export class YetiYamlEditorProvider implements vscode.CustomTextEditorProvider {
 				<script nonce="${nonce}" src="${scriptUri}"></script>
 			</body>
 			</html>`;
-	}
-
-	private editTranslation(document: vscode.TextDocument, yml: yaml.Document, idx: number, choice_idx: number, insert_idx: number, address: number, new_text: string) {
-		return this.editThing(document, yml, "translation", idx, choice_idx, insert_idx, address, new_text);
-	}
-
-	private editNotes(document: vscode.TextDocument, yml: yaml.Document, idx: number, choice_idx: number, insert_idx: number, address: number, new_text: string) {
-		return this.editThing(document, yml, "notes", idx, choice_idx, insert_idx, address, new_text);
-	}
-
-	private DoThing(document: vscode.TextDocument, yml: any, note: yaml.YAMLMap, type: string, new_text: string, ) {
-		let fix = `${type}: ${new_text}\n`;
-
-		if (note.has(type)) {
-			let offset: yaml.Pair<any, any> = note.items.find((it: yaml.Pair<any, any>) => it.key.value === type)!;
-			// we store the original range to replace, because this will probably be invalidated when we run set.
-			let prev_offsets: [number, number] = [offset!.key!.range![0], offset!.value!.range![2]];
-			note.set(type, new_text);
-			return this.updateTextDocument(document, prev_offsets, fix);
-		} else {
-			vscode.window.showErrorMessage("Couldn't get correct position info for node, updating the whole document.");
-			note.set(type, new_text);
-			let str = yaml.stringify(yml);
-			return this.updateWithError(document, str);				
-		}
-	}
-
-	/**
-	 * Edit a translation.
-	 */
-	private editThing(
-		document: vscode.TextDocument,
-		yml: any,
-		type: string,
-		idx: number,
-		choice_idx: number,
-		insert_idx: number,
-		address: number,
-		new_text: string
-	) {
-		if (yml.get('opcodes').get(idx).get('address') === address || 
-			(yml.get('opcodes').get(idx).has('contents') && yml.get('opcodes').get(idx - 1).get('address') === address)) {
-			var op: yaml.YAMLMap = yml.get('opcodes').get(idx);
-
-			if (op.has('contents')) {
-				let contents: yaml.YAMLSeq = op.get("contents") as any;
-
-				let note = contents.get(insert_idx) as any;
-
-				return this.DoThing(document, yml, note, type, new_text);
-			} else if ([0x31, 0x32].includes(op.get("opcode") as number)) {
-				let choices: yaml.YAMLSeq = op.get("choices") as any;
-
-				let choice = choices.get(choice_idx) as any;
-
-				return this.DoThing(document, yml, choice, type, new_text);
-			} else {
-				this.DoThing(document, yml, op, type, new_text);
-			}
-		}
-	}
-
-	private updateWithError(document: vscode.TextDocument, text: string) {
-		vscode.window.showErrorMessage("Couldn't get correct position info for node, updating the whole document.");
-
-		const edit = new vscode.WorkspaceEdit();
-
-		// Just replace the entire document every time for this example extension.
-		// A more complete extension should compute minimal edits instead.
-		edit.replace(
-			document.uri,
-			new vscode.Range(0, 0, document.lineCount, 0),
-			text,
-		);
-
-		return vscode.workspace.applyEdit(edit);
-	}
-
-	/**
-	 * Write out the json to a given document.
-	 */
-	private updateTextDocument(document: vscode.TextDocument, prev_offsets: [number, number], replacement: string) {
-		const edit = new vscode.WorkspaceEdit();
-
-		const lcol = lineColumn(document.getText(), { origin: 0 });
-
-		const startLineCol = lcol.fromIndex(prev_offsets[0])!;
-		const endLineCol = lcol.fromIndex(prev_offsets[1])!;
-
-		// Do a minimal edit.
-		edit.replace(
-			document.uri,
-			new vscode.Range(startLineCol.line, startLineCol.col, endLineCol.line, endLineCol.col),
-			replacement,
-		);
-
-		return vscode.workspace.applyEdit(edit);
 	}
 }

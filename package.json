@@ -2,7 +2,7 @@
   "name": "yeti-edit",
   "displayName": "yeti-edit",
   "description": "edit yeti opcode scripts",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "engines": {
     "vscode": "^1.95.0"
   },
@@ -30,12 +30,17 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "vscode:prepublish-web": "npm run package-web",
+    "compile-web": "webpack",
+    "watch-web": "webpack --watch",
+    "package-web": "webpack --mode production --devtool hidden-source-map"
   },
   "devDependencies": {
     "@types/line-column": "^1.0.2",
     "@types/mocha": "^10.0.9",
     "@types/node": "20.x",
+    "@types/semaphore": "^1.1.4",
     "@types/vscode": "^1.95.0",
     "@typescript-eslint/eslint-plugin": "^8.10.0",
     "@typescript-eslint/parser": "^8.7.0",
@@ -48,6 +53,7 @@
   "dependencies": {
     "dedent-js": "^1.0.1",
     "line-column": "^1.0.2",
+    "semaphore": "^1.1.0",
     "yaml": "^2.6.1",
     "yaml-types": "^0.4.0"
   }
