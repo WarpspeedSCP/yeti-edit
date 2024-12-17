@@ -36,7 +36,6 @@ export function activate(context: vscode.ExtensionContext) {
 				newstats.aggregate.n_tl += linedata.n_tl;
 			}
 
-			await context.workspaceState.update('projectStats', undefined);
 			await context.workspaceState.update('projectStats', newstats);
 			vscode.window.showInformationMessage('Project stats updated. Reopen any files to see project progress.');
 		}

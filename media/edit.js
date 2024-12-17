@@ -21,7 +21,7 @@
 
   function replace_newlines(/** @type {string} */ input) {
     if (input !== null && input !== undefined) {
-      return input.replaceAll("\n", "%N");
+      return input.replaceAll('"', "|_|").replaceAll('\\', '|~|').replaceAll("\n", "%N");
     } else {
       return "";
     }
@@ -29,7 +29,7 @@
 
   function unreplace_newlines(input) {
     if (input !== null && input !== undefined) {
-      return input.replaceAll("%N", "\n");
+      return input.replaceAll("%N", "\n").replaceAll('|~|', '\\').replaceAll("|_|", '"');
     } else {
       return "";
     }
