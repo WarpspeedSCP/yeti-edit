@@ -2,7 +2,7 @@
   "name": "yeti-edit",
   "displayName": "yeti-edit",
   "description": "edit yeti opcode scripts",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "engines": {
     "vscode": "^1.95.0"
   },
@@ -12,6 +12,12 @@
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
+    "commands": [
+      {
+        "command": "yeti-edit.yetiRepopDb",
+        "title": "Recalculate translation statistics"
+      }
+    ],
     "customEditors": [
       {
         "viewType": "yeti-edit.yetiYamlEdit",

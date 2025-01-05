@@ -1,3 +1,4 @@
+/* eslint-disable curly */
 // @ts-check
 
 // Script run within the webview itself.
@@ -34,11 +35,6 @@
       return "";
     }
   }
-
-  const errorContainer = document.createElement("div");
-  document.body.appendChild(errorContainer);
-  errorContainer.className = "error";
-  errorContainer.style.display = "none";
 
   document.addEventListener("scroll", (e) => {
     let state = vscode.getState();
@@ -294,6 +290,7 @@
         this_doc_stats: message.this_doc_stats,
       };
     }
+    
     if (
       prevState.text == message.data &&
       prevState.stats == message.stats &&
