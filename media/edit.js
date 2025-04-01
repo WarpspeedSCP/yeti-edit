@@ -65,8 +65,17 @@
     let needle = searchInput.value;
     if (!isBlankOrNull(needle)) {
       let texts = notesContainer.querySelectorAll("div > span.note-text");
-
+      let texts1 = notesContainer.querySelectorAll("div > textarea.note-input");
       for (const i of texts) {
+        let text = i.textContent;
+        if (!text) continue;
+        if (text.search(needle) > -1) {
+          let tgt = i.parentElement?.parentElement;
+          scrollToTargetAdjusted(tgt);
+        }
+      }
+
+      for (const i of texts1) {
         let text = i.textContent;
         if (!text) continue;
         if (text.search(needle) > -1) {

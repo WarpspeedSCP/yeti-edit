@@ -132,6 +132,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	let repopCommand = vscode.commands.registerCommand("yeti-edit.yetiRepopDb", async () => {
 		let files =  await vscode.workspace.findFiles("**/[0-9][0-9][0-9][0-9].yaml");
+		let old_stats = context.workspaceState.get('projectStats') as YetiContext | null | undefined;
 		let newstats: YetiContext = {
 			files: {},
 			aggregate: {
@@ -139,9 +140,9 @@ export function activate(context: vscode.ExtensionContext) {
 				n_tl: 0,
 			},
 			version: EXTENSION_VERSION,
-			script_dir: null,
-			output_dir: null,
-			yeti_location: null,
+			script_dir: old_stats?.script_dir,
+			output_dir: old_stats?.output_dir,
+			yeti_location: old_stats?.yeti_location,
 		};
 		let total = files.length;
 		let c = 0;
