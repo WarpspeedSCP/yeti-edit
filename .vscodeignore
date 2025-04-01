@@ -9,3 +9,8 @@ vsc-extension-quickstart.md
 **/*.map
 **/*.ts
 **/.vscode-test.*
+.idea/
+out/**
+node_modules/**
+esbuild.js
+webview/**
