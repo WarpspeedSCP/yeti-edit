@@ -2,7 +2,7 @@
   "name": "yeti-edit",
   "displayName": "yeti-edit",
   "description": "edit yeti opcode scripts",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "engines": {
     "vscode": "^1.95.0"
   },
@@ -16,6 +16,10 @@
       {
         "command": "yeti-edit.yetiRepopDb",
         "title": "Recalculate translation statistics"
+      },
+      {
+        "command": "yeti-edit.yetiBuildSnBin",
+        "title": "Build the sn.bin file."
       }
     ],
     "customEditors": [

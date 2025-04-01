@@ -1,3 +1,4 @@
+/* eslint-disable eqeqeq */
 /* eslint-disable curly */
 // @ts-check
 
@@ -22,7 +23,7 @@
 
   function replace_newlines(/** @type {string} */ input) {
     if (input !== null && input !== undefined) {
-      return input.replaceAll('"', "|_|").replaceAll('\\', '|~|').replaceAll("\n", "%N");
+      return input.replaceAll('"', "<dquote/>").replaceAll('\\', '<bslash/>').replaceAll("\n", "%N");
     } else {
       return "";
     }
@@ -30,7 +31,7 @@
 
   function unreplace_newlines(input) {
     if (input !== null && input !== undefined) {
-      return input.replaceAll("%N", "\n").replaceAll('|~|', '\\').replaceAll("|_|", '"');
+      return input.replaceAll("%N", "\n").replaceAll('<bslash/>', '\\').replaceAll("<dquote/>", '"');
     } else {
       return "";
     }
@@ -50,7 +51,8 @@
     curr_speaker,
     curr_text_idx,
     n_insert,
-    linedata
+    linedata,
+    curr_speaker_orig,
   ) {
     let mainContainer = notesContainer;
 
@@ -62,11 +64,11 @@
       ![0x45, 0x47, 0x86, 0x31, 0x32].includes(note.opcode) &&
       !("contents" in note)
     ) {
-      return { ok: false, new_curr_speaker: curr_speaker };
+      return { ok: false, new_curr_speaker: curr_speaker, new_curr_speaker_orig: curr_speaker_orig };
     }
 
     if (note.opcode === 0x47 && note.opt_arg2 === null) {
-      return { ok: false, new_curr_speaker: note.translation };
+      return { ok: false, new_curr_speaker: note.translation, new_curr_speaker_orig: note.unicode };
     }
 
     if ("contents" in note) {
@@ -76,14 +78,16 @@
 
       for (let j = 0; j < contents.length; j++) {
         let inner_note = contents[j];
-        curr_speaker = update_inner(
+        let { ok, new_curr_speaker, new_curr_speaker_orig } = update_inner(
           idx,
           inner_note,
           curr_speaker,
           curr_text_idx,
           j,
-          linedata
-        ).new_curr_speaker;
+          linedata,
+        );
+        curr_speaker = new_curr_speaker;
+        curr_speaker_orig = new_curr_speaker_orig;
       }
 
       let temp = insertContainer;
@@ -95,7 +99,7 @@
       insertContainer = null;
       mainContainer = notesContainer;
 
-      return { ok: false, new_curr_speaker: curr_speaker };
+      return { ok: false, new_curr_speaker: curr_speaker, new_curr_speaker_orig: curr_speaker_orig };
     } else if (note.opcode === 0x31 || note.opcode === 0x32) {
       let choices = note.choices;
 
@@ -148,9 +152,11 @@
       choice_divs.forEach((it) => choices_element.appendChild(it));
     } else {
       let speaker_text = "";
-      if (curr_speaker !== null) {
+      if (curr_speaker != null) {
         speaker_text += curr_speaker + ":";
         curr_speaker = null;
+      } else if (curr_speaker_orig != null) {
+        speaker_text = "Untranslated Speaker: " + curr_speaker_orig;
       }
 
       let note_html = `
@@ -187,7 +193,7 @@
       );
     }
 
-    return { ok: true, new_curr_speaker: null };
+    return { ok: true, new_curr_speaker: null, new_curr_speaker_orig: null };
   }
 
   function updateStats(data) {
@@ -216,6 +222,7 @@
     notesContainer.innerHTML = "";
     let curr_text_idx = 0;
     let curr_speaker = null;
+    let curr_speaker_orig = null;
 
     let n_lines = 0;
     let n_tl = 0;
@@ -231,15 +238,18 @@
         curr_speaker,
         curr_text_idx,
         -1,
-        linedata
+        linedata,
+        curr_speaker_orig,
       );
       prev_address = note.address;
       if (!res.ok) {
         curr_speaker = res.new_curr_speaker;
+        curr_speaker_orig = res.new_curr_speaker_orig;
         continue;
       }
       curr_text_idx += 1;
       curr_speaker = res.new_curr_speaker;
+      curr_speaker_orig = res.new_curr_speaker_orig;
     }
 
     document.getElementById("n_lines").innerText = linedata.n_lines;

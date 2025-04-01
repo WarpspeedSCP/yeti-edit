@@ -582,7 +582,11 @@ export interface YetiFileInfo {
 
 export interface YetiContext {
 	files: { [key: string]: YetiFileInfo }
-	aggregate: YetiFileInfo
+	aggregate: YetiFileInfo,
+	version: string,
+	script_dir: string | null,
+	output_dir: string | null,
+	yeti_location: string | null,
 }
 
 export function isBlankOrNull(str: string | null | undefined) {

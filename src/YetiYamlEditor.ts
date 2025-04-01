@@ -5,6 +5,7 @@ import * as util from './util';
 import * as yaml from 'yaml';
 import lineColumn from 'line-column';
 import semaphore from 'semaphore';
+import { EXTENSION_VERSION } from './extension';
 
 export class YetiYamlEditorProvider implements vscode.CustomTextEditorProvider {
 	public static register(context: vscode.ExtensionContext): vscode.Disposable {
@@ -19,6 +20,13 @@ export class YetiYamlEditorProvider implements vscode.CustomTextEditorProvider {
 		private readonly context: vscode.ExtensionContext,
 	) { }
 
+	public applyMigrations(text: string) {
+		return text
+			.replaceAll("|_|", "<dquote/>")
+			.replaceAll("|~|", "<bslash/>")
+			.replaceAll("\\\"", "<dquote/>");
+	}
+
 	/**
 	 * Called when our custom editor is opened.
 	 * 
@@ -29,30 +37,62 @@ export class YetiYamlEditorProvider implements vscode.CustomTextEditorProvider {
 		webviewPanel: vscode.WebviewPanel,
 		_token: vscode.CancellationToken
 	): Promise<void> {
-		var yml = yaml.parseDocument(document.getText(), util.yamlOpts);
+		let doc_text = document.getText();
+
 		var doc_stats = this.context.workspaceState.get('projectStats') as util.YetiContext;
-		if (!doc_stats) {
+		if (!doc_stats || doc_stats.version != EXTENSION_VERSION) {
+			doc_text = this.applyMigrations(doc_text);
 			doc_stats = {
 				files: {},
 				aggregate: {
 					n_lines: 0,
 					n_tl: 0
-				}
+				},
+				version: EXTENSION_VERSION,
+				script_dir: null,
+				output_dir: null,
+				yeti_location: null,
 			};
+			await vscode.commands.executeCommand("yeti-edit.yetiRepopDb");
 		}
-
+		var yml = yaml.parseDocument(doc_text, util.yamlOpts);
 		var internal = false;
 		var internalGuard = semaphore(1);
 
-		const editTranslation = (document: vscode.TextDocument, yml: yaml.Document, doc_stats: util.YetiContext, idx: number, choice_idx: number, insert_idx: number, address: number, new_text: string) => {
+		const editTranslation = (
+			document: vscode.TextDocument,
+			yml: yaml.Document,
+			doc_stats: util.YetiContext,
+			idx: number,
+			choice_idx: number,
+			insert_idx: number,
+			address: number,
+			new_text: string
+		) => {
 			return editThing(document, yml, doc_stats, "translation", idx, choice_idx, insert_idx, address, new_text);
 		};
 
-		const editNotes = (document: vscode.TextDocument, yml: yaml.Document, doc_stats: util.YetiContext, idx: number, choice_idx: number, insert_idx: number, address: number, new_text: string) => {
+		const editNotes = (
+			document: vscode.TextDocument,
+			yml: yaml.Document,
+			doc_stats: util.YetiContext,
+			idx: number,
+			choice_idx: number,
+			insert_idx: number,
+			address: number,
+			new_text: string
+		) => {
 			return editThing(document, yml, doc_stats, "notes", idx, choice_idx, insert_idx, address, new_text);
 		};
 
-		const doEditInner = (document: vscode.TextDocument, yml: any, doc_stats: util.YetiContext, note: yaml.YAMLMap, type: string, new_text: string,) => {
+		const doEditInner = (
+			document: vscode.TextDocument,
+			yml: any,
+			doc_stats: util.YetiContext,
+			note: yaml.YAMLMap,
+			type: string,
+			new_text: string
+		) => {
 			let fix = `${type}: "${new_text}"\n`;
 
 			if (type == 'translation') {
@@ -164,7 +204,11 @@ export class YetiYamlEditorProvider implements vscode.CustomTextEditorProvider {
 		webviewPanel.webview.options = {
 			enableScripts: true,
 		};
-		webviewPanel.webview.html = this.getHtmlForWebview(webviewPanel.webview);
+		
+		webviewPanel.webview.html = this.getHtmlForWebview(
+			webviewPanel.webview,
+			document.fileName.split('/').reverse()[0]
+		);
 
 		function updateWebview(type: string) {
 			webviewPanel.webview.postMessage({
@@ -252,7 +296,7 @@ export class YetiYamlEditorProvider implements vscode.CustomTextEditorProvider {
 	/**
 	 * Get the static html used for the editor webviews.
 	 */
-	private getHtmlForWebview(webview: vscode.Webview): string {
+	private getHtmlForWebview(webview: vscode.Webview, title: string): string {
 		// Local path to script and css for the webview
 		const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(
 			this.context.extensionUri, 'media', 'edit.js'));
@@ -275,7 +319,7 @@ export class YetiYamlEditorProvider implements vscode.CustomTextEditorProvider {
 
 				<link href="${styleVSCodeUri}" rel="stylesheet" />
 
-				<title>Cat Scratch</title>
+				<title>${title}</title>
 			</head>
 			<body>
 
