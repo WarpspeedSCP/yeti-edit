@@ -10,11 +10,35 @@
   // @ts-ignore
   const vscode = acquireVsCodeApi();
 
+  const searchInput = /** @type {HTMLInputElement} */ (document.getElementById("search-input"));
+  const searchButton = document.getElementById("search");
   const notesContainer = /** @type {HTMLElement} */ (
     document.querySelector(".notes")
   );
   var insertContainer = null;
   var prev_address = -1;
+
+  function scrollToTargetAdjusted(targetElem){
+    var headerOffset = 112;
+    var elementPosition = targetElem.getBoundingClientRect().top;
+    var offsetPosition = elementPosition + window.scrollY - headerOffset;
+    
+    window.scrollTo({
+         top: offsetPosition,
+         behavior: "smooth"
+    });
+
+    window.addEventListener(
+      "scrollend",
+      function () {
+        targetElem.classList.add("highlight");
+        setTimeout(() => {
+          targetElem.classList.remove("highlight");
+        }, 1000);        
+      },
+      {once: true}
+    );
+  }
 
   function isBlankOrNull(str) {
     return str === null || str === undefined || str.length === 0 || str.replaceAll(' ', '').length === 0;
@@ -36,6 +60,27 @@
       return "";
     }
   }
+
+  searchButton?.addEventListener("click", (e) => {
+    let needle = searchInput.value;
+    if (!isBlankOrNull(needle)) {
+      let texts = notesContainer.querySelectorAll("div > span.note-text");
+
+      for (const i of texts) {
+        let text = i.textContent;
+        if (!text) continue;
+        if (text.search(needle) > -1) {
+          let tgt = i.parentElement?.parentElement;
+          scrollToTargetAdjusted(tgt);
+        }
+      }
+    }
+
+  });
+
+  searchInput?.addEventListener("keypress", (e) => {
+    if (e.code == "Enter") searchButton?.click();
+  });
 
   document.addEventListener("scroll", (e) => {
     let state = vscode.getState();
@@ -126,13 +171,13 @@
 
         single_choice_div.innerHTML = `
           <span class="note-title">Choice ${j + 1}:</span>
-          <div><span>${choice.unicode}</span></div>
+          <div><span class="note-text" id="${idx}-${j}-unicode">${choice.unicode}</span></div>
           <span class="note-title">Translation:</span>
-          <div><textarea  id="${idx}-${j}-tl">${
+          <div><textarea class="note-input" id="${idx}-${j}-tl">${
           choice.translation ? unreplace_newlines(choice.translation) : ""
         }</textarea></div>
           <span class="note-title">Notes:</span>
-          <div><textarea id="${idx}-${j}-notes">${
+          <div><textarea class="note-input" id="${idx}-${j}-notes">${
           choice.notes ? unreplace_newlines(choice.notes) : ""
         }</textarea></div>
           `;
@@ -165,13 +210,13 @@
             ? "" + curr_text_idx + " : " + (n_insert + 1)
             : curr_text_idx + 1
         }] ${speaker_text}</span>
-        <div><span>${note.unicode}</span></div>
+        <div><span class="note-text" id="${idx}-unicode">${note.unicode}</span></div>
         <span class="note-title">Translation:</span>
-        <div><textarea id="${idx}-tl">${
+        <div><textarea class="note-input" id="${idx}-tl">${
         note.translation ? unreplace_newlines(note.translation) : ""
       }</textarea></div>
         <span class="note-title">Notes:</span>
-        <div><textarea id="${idx}-notes">${
+        <div><textarea class="note-input" id="${idx}-notes">${
         note.notes ? unreplace_newlines(note.notes) : ""
       }</textarea></div>
         `;
@@ -305,7 +350,7 @@
       prevState.text == message.data &&
       prevState.stats == message.stats &&
       prevState.this_doc_stats == message.this_doc_stats &&
-      document.getElementsByTagName("input").length > 0
+      document.querySelectorAll("input.note-input").length > 0
     )
       return;
 

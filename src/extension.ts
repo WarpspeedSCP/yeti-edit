@@ -12,7 +12,7 @@ import exec, { spawn } from 'child_process';
 import path from 'path';
 import { exists, existsSync } from 'fs';
 
-export const EXTENSION_VERSION = "0.0.5";
+export const EXTENSION_VERSION = "0.0.6";
 
 var yamlIntelSBItem: vscode.StatusBarItem;
 
