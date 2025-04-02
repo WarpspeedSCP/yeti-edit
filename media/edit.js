@@ -46,16 +46,16 @@
   
 
   function replace_newlines(/** @type {string} */ input) {
-    if (input !== null && input !== undefined) {
-      return input.replaceAll('"', "<dquote/>").replaceAll('\\', '<bslash/>').replaceAll("\n", "%N");
+    if (!isBlankOrNull(input)) {
+      return input.replaceAll('"', "<dquote/>").replaceAll('\\', '<bslash/>').replaceAll("\n", "%N").replaceAll("|_|", "<dquote/>");
     } else {
       return "";
     }
   }
 
   function unreplace_newlines(input) {
-    if (input !== null && input !== undefined) {
-      return input.replaceAll("%N", "\n").replaceAll('<bslash/>', '\\').replaceAll("<dquote/>", '"');
+    if (!isBlankOrNull(input)) {
+      return input.replaceAll("%N", "\n").replaceAll('<bslash/>', '\\').replaceAll("<dquote/>", '"').replaceAll("|_|", "\"");
     } else {
       return "";
     }
@@ -84,7 +84,6 @@
         }
       }
     }
-
   });
 
   searchInput?.addEventListener("keypress", (e) => {

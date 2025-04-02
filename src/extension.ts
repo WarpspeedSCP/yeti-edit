@@ -12,7 +12,7 @@ import exec, { spawn } from 'child_process';
 import path from 'path';
 import { exists, existsSync } from 'fs';
 
-export const EXTENSION_VERSION = "0.0.6";
+export const EXTENSION_VERSION = "0.0.7";
 
 var yamlIntelSBItem: vscode.StatusBarItem;
 
@@ -29,7 +29,6 @@ export function activate(context: vscode.ExtensionContext) {
 	yamlIntelSBItem.text = "Updating TL stats (0/0)";
 
 	let outputchannel = vscode.window.createOutputChannel("yeti");
-
 
 	let buildCommand = vscode.commands.registerCommand("yeti-edit.yetiBuildSnBin", async () => {
 		let curr_folder = vscode.workspace.workspaceFolders?.[0]?.uri?.fsPath;
@@ -124,7 +123,7 @@ export function activate(context: vscode.ExtensionContext) {
 				output_dir: output_folder,
 			};
 			await context.workspaceState.update('projectStats', t);
-			vscode.window.showInformationMessage("Project stats are out of date; Please wait...");
+			vscode.window.showInformationMessage("Project stats are out of date, updating...");
 			vscode.commands.executeCommand("yeti-edit.yetiRepopDb");
 		}
 	});
@@ -133,17 +132,32 @@ export function activate(context: vscode.ExtensionContext) {
 	let repopCommand = vscode.commands.registerCommand("yeti-edit.yetiRepopDb", async () => {
 		let files =  await vscode.workspace.findFiles("**/[0-9][0-9][0-9][0-9].yaml");
 		let old_stats = context.workspaceState.get('projectStats') as YetiContext | null | undefined;
-		let newstats: YetiContext = {
-			files: {},
-			aggregate: {
-				n_lines: 0,
-				n_tl: 0,
-			},
-			version: EXTENSION_VERSION,
-			script_dir: old_stats?.script_dir,
-			output_dir: old_stats?.output_dir,
-			yeti_location: old_stats?.yeti_location,
-		};
+		let newstats: YetiContext;
+		
+		if (old_stats) {
+			newstats = {
+				...old_stats,
+				files: {},
+				aggregate: {
+					n_lines: 0,
+					n_tl: 0,
+				},
+				version: EXTENSION_VERSION,
+			};
+		} else {
+			newstats = {
+				files: {},
+				aggregate: {
+					n_lines: 0,
+					n_tl: 0,
+				},
+				version: EXTENSION_VERSION,
+				script_dir: null,
+				yeti_location: null,
+				output_dir: null,
+			};
+		}
+
 		let total = files.length;
 		let c = 0;
 
@@ -170,8 +184,8 @@ export function activate(context: vscode.ExtensionContext) {
 	let existingData = context.workspaceState.get('projectStats') as YetiContext | null | undefined;
 	if (!existingData) {
 		vscode.commands.executeCommand("yeti-edit.yetiRepopDb");
-	} else if (!existingData.version || existingData.version != EXTENSION_VERSION) {
-		vscode.window.showInformationMessage('Yeti Edit has been updated. Please restart VSCode after project stats are refreshed.');
+	} else if (!existingData.version) {
+		vscode.window.showInformationMessage('Yeti Edit has been updated. If you see weird stats, try closing and reopening files, and if that doesn\'t work, restart vs code.');
 		vscode.commands.executeCommand("yeti-edit.yetiRepopDb");
 	}
 }

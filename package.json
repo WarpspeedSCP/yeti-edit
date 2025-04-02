@@ -2,7 +2,7 @@
   "name": "yeti-edit",
   "displayName": "yeti-edit",
   "description": "edit yeti opcode scripts",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "engines": {
     "vscode": "^1.95.0"
   },
@@ -10,8 +10,13 @@
     "Other"
   ],
   "activationEvents": [],
-  "main": "./out/extension.js",
+  "main": "./dist/extension.js",
   "contributes": {
+    "configurationDefaults": {
+      "workbench.editorAssociations": {
+        "{git,gitlens}:/**/*.yaml": "default"
+      }
+    },
     "commands": [
       {
         "command": "yeti-edit.yetiRepopDb",
@@ -41,10 +46,7 @@
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src",
     "test": "vscode-test",
-    "vscode:prepublish-web": "npm run package-web",
-    "compile-web": "webpack",
-    "watch-web": "webpack --watch",
-    "package-web": "webpack --mode production --devtool hidden-source-map"
+    "package": "npm run compile && node esbuild.js --production"
   },
   "devDependencies": {
     "@types/line-column": "^1.0.2",
@@ -62,6 +64,7 @@
   },
   "dependencies": {
     "dedent-js": "^1.0.1",
+    "esbuild": "^0.25.2",
     "line-column": "^1.0.2",
     "semaphore": "^1.1.0",
     "yaml": "^2.6.1",

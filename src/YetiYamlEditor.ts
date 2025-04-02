@@ -40,8 +40,16 @@ export class YetiYamlEditorProvider implements vscode.CustomTextEditorProvider {
 		let doc_text = document.getText();
 
 		var doc_stats = this.context.workspaceState.get('projectStats') as util.YetiContext;
-		if (!doc_stats || doc_stats.version != EXTENSION_VERSION) {
+		if (doc_stats && doc_stats.version != EXTENSION_VERSION) {
 			doc_text = this.applyMigrations(doc_text);
+			doc_stats = {
+				...doc_stats,
+				version: EXTENSION_VERSION,
+			};
+			vscode.commands.executeCommand("yeti-edit.yetiRepopDb").then(() => {
+				updateWebview('statupdate');
+			});
+		} else if (!doc_stats) {
 			doc_stats = {
 				files: {},
 				aggregate: {
@@ -53,7 +61,9 @@ export class YetiYamlEditorProvider implements vscode.CustomTextEditorProvider {
 				output_dir: null,
 				yeti_location: null,
 			};
-			await vscode.commands.executeCommand("yeti-edit.yetiRepopDb");
+			vscode.commands.executeCommand("yeti-edit.yetiRepopDb").then(() => {
+				updateWebview('statupdate');
+			});
 		}
 		var yml = yaml.parseDocument(doc_text, util.yamlOpts);
 		var internal = false;
