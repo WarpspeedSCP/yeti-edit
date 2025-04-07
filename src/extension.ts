@@ -10,9 +10,8 @@ import { readFile } from 'fs/promises';
 
 import exec, { spawn } from 'child_process';
 import path from 'path';
-import { exists, existsSync } from 'fs';
 
-export const EXTENSION_VERSION = "0.0.7";
+export const EXTENSION_VERSION = "0.0.8";
 
 var yamlIntelSBItem: vscode.StatusBarItem;
 
