@@ -10,7 +10,13 @@ import { EXTENSION_VERSION } from './extension';
 export class YetiYamlEditorProvider implements vscode.CustomTextEditorProvider {
 	public static register(context: vscode.ExtensionContext): vscode.Disposable {
 		const provider = new YetiYamlEditorProvider(context);
-		const providerRegistration = vscode.window.registerCustomEditorProvider(YetiYamlEditorProvider.viewType, provider);
+		const providerRegistration = vscode.window.registerCustomEditorProvider(YetiYamlEditorProvider.viewType, provider, {
+			supportsMultipleEditorsPerDocument: false,
+			webviewOptions: {
+				enableFindWidget: true,
+				retainContextWhenHidden: true
+			}
+		});
 		return providerRegistration;
 	}
 
@@ -341,13 +347,6 @@ export class YetiYamlEditorProvider implements vscode.CustomTextEditorProvider {
 						<div class="div4"><span>Total lines (including choices): </span><span  id="n_total_lines"></span></div>
 						<div class="div5"><span>Total translated: </span><span  id="n_total_tl"></span></div>
 						<div class="div6"><span>Total percentage done: </span><span  id="r_total_tl"></span></div>
-					</div>
-					<div class="parent2">
-						<div class="div8"><span></span></div>
-						<div class="div7">
-							<input class="search-input" type="text" id="search-input"></input>
-							<button class="search-button" id="search">Search</button>
-						</div>
 					</div>
 				</div>
 

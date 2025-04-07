@@ -10,13 +10,24 @@
   // @ts-ignore
   const vscode = acquireVsCodeApi();
 
-  const searchInput = /** @type {HTMLInputElement} */ (document.getElementById("search-input"));
-  const searchButton = document.getElementById("search");
   const notesContainer = /** @type {HTMLElement} */ (
     document.querySelector(".notes")
   );
   var insertContainer = null;
   var prev_address = -1;
+
+  var updates = {};
+
+  let updater = setInterval(() => {
+    let to_delete = [];
+    for (const [k, v] of Object.entries(updates)) {
+      to_delete.push(k);
+      vscode.postMessage(v);
+    }
+    for (const i of to_delete) {
+      updates[i] = undefined;
+    }
+  }, 500);
 
   function scrollToTargetAdjusted(targetElem){
     var headerOffset = 112;
@@ -55,40 +66,11 @@
 
   function unreplace_newlines(input) {
     if (!isBlankOrNull(input)) {
-      return input.replaceAll("%N", "\n").replaceAll('<bslash/>', '\\').replaceAll("<dquote/>", '"').replaceAll("|_|", "\"");
+      return input.replaceAll("%N", "\n").replaceAll('<bslash/>', '\\').replaceAll("<dquote/>", '"').replaceAll("|_|", '"');
     } else {
       return "";
     }
   }
-
-  searchButton?.addEventListener("click", (e) => {
-    let needle = searchInput.value;
-    if (!isBlankOrNull(needle)) {
-      let texts = notesContainer.querySelectorAll("div > span.note-text");
-      let texts1 = notesContainer.querySelectorAll("div > textarea.note-input");
-      for (const i of texts) {
-        let text = i.textContent;
-        if (!text) continue;
-        if (text.search(needle) > -1) {
-          let tgt = i.parentElement?.parentElement;
-          scrollToTargetAdjusted(tgt);
-        }
-      }
-
-      for (const i of texts1) {
-        let text = i.textContent;
-        if (!text) continue;
-        if (text.search(needle) > -1) {
-          let tgt = i.parentElement?.parentElement;
-          scrollToTargetAdjusted(tgt);
-        }
-      }
-    }
-  });
-
-  searchInput?.addEventListener("keypress", (e) => {
-    if (e.code == "Enter") searchButton?.click();
-  });
 
   document.addEventListener("scroll", (e) => {
     let state = vscode.getState();
@@ -440,7 +422,6 @@
       tl_textarea.addEventListener("input", (e) => {
         let newlined_text = replace_newlines(e.target.value);
         let state = vscode.getState();
-
         state.last_edit = e.target.id;
         state.last_edit_text = newlined_text;
         state.last_cursor_pos = e.target.selectionStart;
@@ -454,18 +435,28 @@
         vscode.setState(state);
         updateStats(state);
         
-        vscode.postMessage({
+        updates[tl_textarea.id] = {
           type: "edit_translation" + type,
           idx: idx,
           choice_idx: choice_idx,
           insert_idx: insert_idx,
           address: address,
           new_text: newlined_text,
-        });
+        };
+
+        // vscode.postMessage({
+        //   type: "edit_translation" + type,
+        //   idx: idx,
+        //   choice_idx: choice_idx,
+        //   insert_idx: insert_idx,
+        //   address: address,
+        //   new_text: newlined_text,
+        // });
       });
     }
 
     if (notes_textarea !== null) {
+
       notes_textarea.addEventListener("input", (e) => {
         let newlined_text = replace_newlines(e.target.value);
         let state = vscode.getState();
@@ -473,15 +464,15 @@
         state.last_edit_text = newlined_text;
         state.last_cursor_pos = e.target.selectionStart;
         vscode.setState(state);
-        vscode.postMessage({
+        updates[notes_textarea.id] = {
           type: "edit_notes" + type,
           idx: idx,
           choice_idx: choice_idx,
           insert_idx: insert_idx,
           address: address,
           new_text: newlined_text,
-        });
-      });
+        };
+      })
     }
   }
 })();
