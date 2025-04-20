@@ -2,21 +2,19 @@
   "name": "yeti-edit",
   "displayName": "yeti-edit",
   "description": "edit yeti opcode scripts",
-  "version": "0.0.7",
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.95.0"
   },
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onLanguage:plaintext",
+    "workspaceContains:**/[0-9][0-9][0-9][0-9].txt"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
-    "configurationDefaults": {
-      "workbench.editorAssociations": {
-        "{git,gitlens}:/**/*.yaml": "default"
-      }
-    },
     "commands": [
       {
         "command": "yeti-edit.yetiRepopDb",
@@ -25,17 +23,6 @@
       {
         "command": "yeti-edit.yetiBuildSnBin",
         "title": "Build the sn.bin file."
-      }
-    ],
-    "customEditors": [
-      {
-        "viewType": "yeti-edit.yetiYamlEdit",
-        "displayName": "Edit Yeti yaml",
-        "selector": [
-          {
-            "filenamePattern": "**/[0-9][0-9][0-9][0-9].yaml"
-          }
-        ]
       }
     ]
   },
@@ -49,10 +36,8 @@
     "package": "npm run compile && node esbuild.js --production"
   },
   "devDependencies": {
-    "@types/line-column": "^1.0.2",
     "@types/mocha": "^10.0.9",
     "@types/node": "20.x",
-    "@types/semaphore": "^1.1.4",
     "@types/vscode": "^1.95.0",
     "@typescript-eslint/eslint-plugin": "^8.10.0",
     "@typescript-eslint/parser": "^8.7.0",
@@ -64,11 +49,6 @@
     "typescript": "^5.6.3"
   },
   "dependencies": {
-    "dedent-js": "^1.0.1",
-    "esbuild": "^0.25.2",
-    "line-column": "^1.0.2",
-    "semaphore": "^1.1.0",
-    "yaml": "^2.6.1",
-    "yaml-types": "^0.4.0"
+    "esbuild": "^0.25.2"
   }
 }

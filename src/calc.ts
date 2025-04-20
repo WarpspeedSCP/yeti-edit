@@ -1,58 +1,43 @@
 /* eslint-disable eqeqeq */
 /* eslint-disable curly */
 import * as util from './util';
-import * as yaml from 'yaml';
 
-function calculate_inner(note: yaml.YAMLMap, linedata: { n_lines: number, n_tl: number }) {
-    if (![0x45, 0x47, 0x86, 0x31, 0x32].includes(note.get('opcode') as number) && !note.has('contents')) {
-      return;
-    }
+/**
+ * Render the document in the webview.
+ */
+export function calculateStats(path: string, data: string) {
 
-    if (note.get('opcode') === 0x47 && note.get('opt_arg2') == null) {
-      return;
-    }
-
-    if (note.has('contents')) {
-      let contents = note.get('contents') as yaml.YAMLSeq;
-
-      for (let j = 0; j < contents.items.length; j++) {
-        let inner_note = contents.get(j) as yaml.YAMLMap;
-        calculate_inner(inner_note, linedata);
+  let text = data.split("\n");
+  let n_lines = 0;
+  let n_tl = 0;
+  let linedata: util.YetiFileInfo = {n_lines, n_tl};
+  for (var i = 0; i < text.length - 1; i++) {
+    let line = text[i];
+		if (line.startsWith("[choice translation]:")) {
+      if (line.replace("[choice translation]:", "").trim().length > 0) {
+        linedata.n_tl += 1;
       }
-
-      return;
-    } else if (note.get('opcode') === 0x31 || note.get('opcode') === 0x32) {
-      let choices = note.get('choices') as yaml.YAMLSeq;
-
-      for (let j = 0; j < choices.items.length; j++) {
-        let choice = choices.get(j) as yaml.YAMLMap;
-        linedata.n_lines += 1;
-        if (!util.isBlankOrNull(choice.get('translation') as string)) linedata.n_tl += 1;
-      }
-    } else {
       linedata.n_lines += 1;
-      if (!util.isBlankOrNull(note.get('translation') as string)) linedata.n_tl += 1;
-    }
-
-    return;
+    } else if (line.startsWith("[translation]:")) {
+      if (line.replace("[translation]:", "").trim().length > 0) {
+        linedata.n_tl += 1;
+      }
+      linedata.n_lines += 1;
+		}
   }
+  return linedata;
+}
 
-  /**
-   * Render the document in the webview.
-   */
-export function calculateStats(path: string, data: yaml.Document) {
+export function aggregateStats(data: { [key: string]: util.YetiFileInfo }) {
+  let aggregate: util.YetiFileInfo = {
+    n_tl: 0,
+    n_lines: 0
+  };
 
-    let text = data;
-    let n_lines = 0;
-    let n_tl = 0;
-    let linedata: util.YetiFileInfo = {n_lines, n_tl};
-
-    let opcodes = text.get('opcodes') as yaml.YAMLSeq;
-    for (let i = 0; i < opcodes.items.length; i++) {
-      let note = opcodes.get(i) as yaml.YAMLMap;
-
-      calculate_inner(note, linedata);
-    }
-
-    return linedata;
+  for (let i in data) {
+    aggregate.n_lines += data[i].n_lines;
+    aggregate.n_tl += data[i].n_tl;
   }
+  
+  return aggregate;
+}
