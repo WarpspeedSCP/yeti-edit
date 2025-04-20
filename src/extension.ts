@@ -257,6 +257,8 @@ export function activate(context: vscode.ExtensionContext) {
 	if (vscode.window.activeTextEditor) {
 		updateStatusDisplay(existingData?.files[vscode.window.activeTextEditor.document.uri.fsPath], existingData?.aggregate);
 	}
+
+	yamlIntelSBItem.command = "yeti-edit.yetiBuildSnBin";
 }
 
 async function updateStatusDisplay(linedata: { n_lines: number; n_tl: number; } | null | undefined, aggregate: { n_lines: number; n_tl: number; } | null | undefined) {
