@@ -9,8 +9,12 @@ import { readFile } from 'fs/promises';
 import { spawn } from 'child_process';
 import path from 'path';
 
-export const EXTENSION_VERSION = "0.1.0";
+export const EXTENSION_VERSION = "0.1.1";
+
 const yeti_file_regex = /[0-9]{4}\.txt$/;
+const fkb_file_regex = /[^.]*\.WSC\.txt$/;
+const yeti_file_glob = "**/[0-9][0-9][0-9][0-9].txt";
+const fkb_file_glob = "**/*.WSC.txt";
 
 var yamlIntelSBItem: vscode.StatusBarItem;
 
@@ -142,7 +146,7 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	let docChange = vscode.window.onDidChangeActiveTextEditor((e) => {
-		if (!e || !yeti_file_regex.test(e.document.fileName)) {
+		if (!e || !fkb_file_regex.test(e.document.fileName)) {
 			return;
 		}
 		let stats = context.workspaceState.get('projectStats') as YetiContext;
@@ -151,7 +155,7 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	let textOpen = vscode.workspace.onDidOpenTextDocument(async (e) => {
-		if (!e || !yeti_file_regex.test(e.fileName)) {
+		if (!e || !fkb_file_regex.test(e.fileName)) {
 			return;
 		}
 		let stats = context.workspaceState.get('projectStats') as YetiContext;
@@ -159,7 +163,7 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	let textChange = vscode.workspace.onDidChangeTextDocument(async (edit) => {
-		if (!edit || !yeti_file_regex.test(edit.document.fileName)) {
+		if (!edit || !fkb_file_regex.test(edit.document.fileName)) {
 			return;
 		}
 		let foundNoUsefulChanges = true;
@@ -189,7 +193,8 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	let repopCommand = vscode.commands.registerCommand("yeti-edit.yetiRepopDb", async () => {
-		let files =  await vscode.workspace.findFiles("**/[0-9][0-9][0-9][0-9].txt");
+		let files =  await vscode.workspace.findFiles(fkb_file_glob);
+
 		let old_stats = context.workspaceState.get('projectStats') as YetiContext | null | undefined;
 		let newstats: YetiContext;
 		
@@ -258,7 +263,7 @@ export function activate(context: vscode.ExtensionContext) {
 		updateStatusDisplay(existingData?.files[vscode.window.activeTextEditor.document.uri.fsPath], existingData?.aggregate);
 	}
 
-	yamlIntelSBItem.command = "yeti-edit.yetiBuildSnBin";
+	yamlIntelSBItem.command = "yeti-edit.yetiRepopDb";
 }
 
 async function updateStatusDisplay(linedata: { n_lines: number; n_tl: number; } | null | undefined, aggregate: { n_lines: number; n_tl: number; } | null | undefined) {
@@ -273,7 +278,7 @@ async function updateStatusDisplay(linedata: { n_lines: number; n_tl: number; } 
 		yamlIntelSBItem.text = `Total: ${aggFilePercent}% (${aggregate.n_tl}/${aggregate.n_lines})`;
 	} else {
 		let currFilePercent = ((linedata.n_tl / linedata.n_lines) * 100).toFixed(2);
-		yamlIntelSBItem.text = `Current script: ${currFilePercent}% (${linedata.n_tl}/${linedata.n_lines})`;
+		yamlIntelSBItem.text = `Current: ${currFilePercent}% (${linedata.n_tl}/${linedata.n_lines}) | Total: ${aggFilePercent}% (${aggregate.n_tl}/${aggregate.n_lines})`;
 	}
 		
 	yamlIntelSBItem.tooltip = `Total: ${aggFilePercent}% (${aggregate.n_tl}/${aggregate.n_lines})`;
